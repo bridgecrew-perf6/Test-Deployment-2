@@ -14,26 +14,12 @@ jobs:
           name: "Check bucket" # run the `echo` command
           command: aws s3 ls
 
-  create_infrastructure:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Create Cloudformation Stack
-          command: |
-              aws cloudformation deploy \
-                  --template-body file://network.yml \
-                  --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
-                  --region us-east-1
 # Sequential workflow
 workflows:
   # Name the workflow
   workflow:
     jobs:
       - myjob1
-      - create_infrastructure
-
 # # check for errors
 # jobs:
 #   my_job:
