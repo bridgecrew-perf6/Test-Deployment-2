@@ -1,43 +1,26 @@
 ---
-- name: Update and Upgrade all pacakages
-  yum:
-    name: '*'
-    state: latest
+- name: "update apt packages."
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "upgrade packages"
+  become: yes
+  apt:
+    upgrade: yes
+
 
 - name: remove dependencies that are no longer required
   become: yes
-  yum:
+  apt:
     autoremove: yes
 
-- name: Download nvm installer
-  get_url: url="https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh" dest=~/nvm-installer.sh mode=u=rwx,g=r,o=x
-  tags: install-nvm
-
-- name: Execute the nvm-installer.sh
-  command: ~/nvm-installer.sh
-  args:
-    creates: ~/.nvm/nvm.sh
-  tags: install-nvm
-
-- name: Own the nvm script
-  file:
-    path: ~/.nvm/nvm.sh
-    state: touch
-    mode: u=rwx,g=r,o=rwx
-  tags: install-nvm
-
-- name: Activate nvm
-  command: /bin/bash ~/.nvm/nvm.sh
-  args:
-    chdir: "~/"
-  tags: install-nvm
-
-- name: Install node
-  shell: |
-    source ~/.bashrc
-    nvm install "7.9.0"
-    nvm use --delete-prefix "v7.9.0" --silent
-  tags: install-node
+- name: "install dependencies."
+  become: yes
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
 
 - name: "install pm2"
   become: yes
@@ -47,22 +30,16 @@
     production: yes
     state: present
 
-- name: Create new directory and copy from index
+- name: Creates directory
   file:
     path: ~/web
-  file: 
-    path: ~/web/index.js
-    state: touch
+    state: directory
 
-- name: Copy index.js to web/index.js
-  ansible.builtin.copy:
-    src: /files/index.js
-    dest: ~/web/index.js
-    owner: root
-    group: root
-    mode: '0644'
+- name: Copy index test page
+  template:
+    src: "files/index.js"
+    dest: "~/web/index.js"
 
-- name: Start the application with pm2
-  command: 'pm2 start ~/web/index.js -f'
-  become: yes
-  
+- name: Executing node
+  shell: |
+    pm2 start ~/web/index.js -f
