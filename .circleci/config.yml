@@ -1,0 +1,94 @@
+version: 2.1
+
+orbs: 
+  aws-cli: circleci/aws-cli@1.4.0
+
+jobs:
+  myjob1:  # Choose any name, such as `build`
+    # The primary container, where your job's commands will run
+    docker:
+      - image: amazon/aws-cli 
+    steps:
+      - checkout # check out the code in the project directory
+      - run: 
+          name: "Check bucket" # run the `echo` command
+          command: aws s3 ls
+
+  create_infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Create Cloudformation Stack
+          command: |
+              aws cloudformation deploy \
+                  --template-body file://network.yml \
+                  --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
+                  --region us-east-1
+# Sequential workflow
+workflows:
+  # Name the workflow
+  workflow:
+    jobs:
+      - myjob1
+      - create_infrastructure
+
+# # check for errors
+# jobs:
+#   my_job:
+#     docker:
+#       - image: circleci/node:13.8.0
+#     steps:
+#       - run: exit 1
+#       - run:
+#           name: on error
+#           command: echo "Hello Error!"
+#           when: on_fail
+
+# workflows:
+#   my_workflow:
+#     jobs:
+#       - my_job
+
+#Upload and copy files
+# steps:
+#   - run:
+#       name: Testing application
+#       command: make test
+#       shell: /bin/bash
+#       working_directory: ~/my-app
+#       no_output_timeout: 30m
+#       environment:
+#         FOO: bar
+
+#   - run: echo 127.0.0.1 devhost | sudo tee -a /etc/hosts
+
+#   - run: |
+#       sudo -u root createuser -h localhost --superuser ubuntu &&
+#       sudo createdb -h localhost test_db
+
+#   - run:
+#       name: Upload Failed Tests
+#       command: curl --data fail_tests.log http://example.com/error_logs
+#       when: on_fail
+
+# To create reusable code
+# version: 2.1
+
+# commands:
+#   print_pipeline_id:
+#     steps:
+#       - run: echo ${CIRCLE_WORKFLOW_ID}
+
+# jobs:
+#   my_job:
+#     docker:
+#       - image: circleci/node:13.8.0
+#     steps:
+#       - print_pipeline_id
+
+# workflows:
+#   my_workflow:
+#     jobs:
+#       - my_job
