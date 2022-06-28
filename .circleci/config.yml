@@ -19,7 +19,7 @@ workflows:
   # Name the workflow
   workflow:
     jobs:
-      - s3bucket
+      - s3Bucket
 
 # # check for errors
 # jobs:
