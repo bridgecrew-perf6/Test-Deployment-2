@@ -45,6 +45,23 @@ jobs:
           command: |
             # Your command
             ansible-playbook -i inventory.txt main2.yml
+  
+  smoke_test:
+    docker:
+      - image: alphine:latest
+    steps:
+      - run: apk add --update curl
+      - run:
+       name: smoke test
+       command: |
+         URL="https://blog.udacity.com/"
+         # Test if website exists
+         if curl -s --head ${URL} 
+         then
+           return 0
+         else
+           return 1
+         fi
 
 # Sequential workflow
 workflows:
@@ -53,7 +70,8 @@ workflows:
     jobs:
       - s3Bucket
       # - create_infrastructure
-      - configure_infrastructure
+      # - configure_infrastructure
+      - smoke_test
 
 # # check for errors
 # jobs:
